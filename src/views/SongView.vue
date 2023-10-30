@@ -1,35 +1,24 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import SongComment from '@/components/SongComment.vue'
-import {
-  doc,
-  getDoc,
-  getFirestore,
-  increment,
-  onSnapshot,
-  query,
-  updateDoc,
-  where
-} from 'firebase/firestore'
 import router from '@/router'
 import { Field, Form } from 'vee-validate'
 import { getAuth } from 'firebase/auth'
-import { addDoc, collection } from 'firebase/firestore'
 import { useUserAuthStore } from '@/stores/UserAuth'
 import { useAppPlayerStore } from '@/stores/AppPlayerStore'
+import useSong from '@/composables/useSong'
+import useSongComments from '@/composables/useSongComments'
 
-const db = getFirestore()
+const { song, error: songError, getSong } = useSong()
+const { comments, commentInSubmission, selectedSort, sortedComments, getComments, addComment } =
+  useSongComments()
 
-const song = ref({})
-const songId = useRoute().params.id
+const route = useRoute()
+const songId = route.params.id
 
-const commentInSubmission = ref(false)
-const comments = ref([])
-const selectedSort = ref('1')
-
-const { sort } = useRoute().query
-selectedSort.value = sort === '1' || sort === '2' ? sort : '1'
+const { sort } = route.query
+selectedSort.value = ['1', '2'].includes(sort) ? sort : '1'
 watch(selectedSort, (value) => {
   if (value === sort) {
     return
@@ -44,59 +33,25 @@ watch(selectedSort, (value) => {
 const commentSchema = {
   comment: 'required|min:3|max:300'
 }
-const getSong = async () => {
-  const songRef = doc(db, 'songs', songId)
-  const songSnap = await getDoc(songRef)
-  if (!songSnap.exists) {
+
+const handleGetSong = async () => {
+  await getSong(songId)
+
+  if (songError.value) {
     router.push({ name: 'home' })
-    return
   }
-  song.value = { ...songSnap.data(), id: songSnap.id }
 }
-getSong()
+
+handleGetSong()
+getComments(songId)
 
 const auth = getAuth()
-const addComment = async (values, { resetForm }) => {
-  commentInSubmission.value = true
-  const comment = {
-    content: values.comment,
-    datePosted: new Date().toString(),
-    sid: songId,
-    name: auth.currentUser.displayName,
-    uid: auth.currentUser.uid
-  }
-  await addDoc(collection(db, 'comments'), comment)
-  await incrementCommentsCount()
-  commentInSubmission.value = false
+
+const onSubmitComment = async (values, { resetForm }) => {
+  await addComment(songId, values.comment, auth.currentUser)
+
   resetForm()
 }
-const incrementCommentsCount = async () => {
-  const songRef = doc(db, 'songs', song.value.id)
-  await updateDoc(songRef, {
-    commentCount: increment(1)
-  })
-}
-async function getComments() {
-  const colRef = collection(db, 'comments')
-  const q = query(colRef, where('sid', '==', songId))
-
-  await onSnapshot(q, (snapshot) => {
-    comments.value = []
-    snapshot.docs.forEach((doc) => {
-      comments.value.push({ ...doc.data(), id: doc.id })
-    })
-  })
-}
-getComments()
-
-const sortedComments = computed(() => {
-  return comments.value.toSorted((a, b) => {
-    if (selectedSort.value === '1') {
-      return new Date(b.datePosted) - new Date(a.datePosted)
-    }
-    return new Date(a.datePosted) - new Date(b.datePosted)
-  })
-})
 </script>
 
 <template>
@@ -135,7 +90,7 @@ const sortedComments = computed(() => {
           <Form
             v-if="useUserAuthStore().isLoggedIn"
             :validation-schema="commentSchema"
-            @submit="addComment"
+            @submit="onSubmitComment"
           >
             <Field
               as="textarea"
