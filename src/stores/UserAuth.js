@@ -12,7 +12,7 @@ export const useUserAuthStore = defineStore('userAuthStore', {
   state: () => ({
     isAuthRequested: false,
     isLoggedIn: false,
-    songs: []
+    songs: [] // TODO: Чому это стор?
   }),
   actions: {
     async register(values) {

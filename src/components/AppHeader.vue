@@ -5,6 +5,7 @@ import { signOut, getAuth } from 'firebase/auth'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 
+// TODO: че не работает при ...
 const authModal = useAuthModalStore()
 const toggleModal = () => {
   authModal.isOpen = !authModal.isOpen
