@@ -11,7 +11,8 @@ import {
 export const useUserAuthStore = defineStore('userAuthStore', {
   state: () => ({
     isAuthRequested: false,
-    isLoggedIn: false
+    isLoggedIn: false,
+    songs: []
   }),
   actions: {
     async register(values) {

@@ -3,6 +3,7 @@ import HomeView from '@/views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import ManageView from '@/views/ManageView.vue'
 import { useUserAuthStore } from '@/stores/UserAuth'
+import SongView from '@/views/SongView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +24,11 @@ const router = createRouter({
       name: 'manage',
       component: ManageView,
       meta: { requiredAuth: true }
+    },
+    {
+      path: '/song/:id',
+      name: 'song',
+      component: SongView
     },
     {
       path: '/:catchAll(.*)*',

@@ -13,6 +13,7 @@ const upload = ($event) => {
   isDragover.value = false
 
   const file = $event.dataTransfer ? $event.dataTransfer.files[0] : $event.target.files[0]
+  console.log(file)
 
   if (file.type !== 'audio/mpeg') {
     console.log('file type is incorrect')
@@ -59,6 +60,7 @@ const upload = ($event) => {
         modifiedName: uploadTask.snapshot.ref.name,
         genre: '',
         commentCount: 0,
+        likesCount: 0,
         formIsActive: false
       }
       //TODO: НЕ ЗАБЫТЬ!!! Референс нужно делать непосредственно внутри, а не импортировать. Референсы не реактивны. Не могут менять инстансы или дату.
