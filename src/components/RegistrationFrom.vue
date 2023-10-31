@@ -4,49 +4,10 @@ import { ref } from 'vue'
 import BaseFormItem from '@/components/BaseFormItem.vue'
 import SubmitBtn from '@/components/UI/SubmitBtn.vue'
 import { useUserAuthStore } from '@/stores/UserAuth'
+import { formFields, schema } from '@/components/RegistrationForm.data'
 
 defineProps(['tab'])
 
-const items = [
-  {
-    label: 'Имя',
-    name: 'name',
-    type: 'text',
-    placeholder: 'Введите имя'
-  },
-  {
-    label: 'Почта',
-    name: 'email',
-    type: 'text',
-    placeholder: 'Введите почту'
-  },
-  {
-    label: 'Возраст',
-    name: 'age',
-    type: 'number',
-    placeholder: null
-  },
-  {
-    label: 'Пароль',
-    name: 'password',
-    type: 'password',
-    placeholder: 'Введите пароль'
-  },
-  {
-    label: 'Подтвердите пароль',
-    name: 'confirm_password',
-    type: 'password',
-    placeholder: 'Подтвердите пароль'
-  }
-]
-const schema = {
-  name: 'required|min:3|max:20|alpha_spaces',
-  email: 'required|max:30|email',
-  age: 'required|min_value:12|max_value:100',
-  password: 'required|min:7|max:20',
-  confirm_password: 'password_mismatch:@password',
-  tos: 'required'
-}
 const regShowAlert = ref(false)
 const regInSubmission = ref(false)
 const regAlertVariant = ref('bg-blue-500')
@@ -79,7 +40,7 @@ async function registerUser(values) {
     class="text-white text-center font-bold p-4 rounded mb-4"
   ></div>
   <Form v-slot="{ meta }" :validation-schema="schema" @submit="registerUser">
-    <base-form-item v-for="item in items" :key="item.label" :item="item" />
+    <base-form-item v-for="item in formFields" :key="item.label" :item="item" />
     <!-- TOS -->
     <div class="mb-3 pl-6">
       <label class="inline-block">Правила пользования</label>

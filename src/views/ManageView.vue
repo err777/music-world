@@ -1,30 +1,14 @@
 <script setup>
 import AppUpload from '@/components/AppUpload.vue'
-import { collection, getFirestore, onSnapshot, query, where } from 'firebase/firestore'
-
-import { getAuth } from 'firebase/auth'
 import CompositionItem from '@/components/CompositionItem.vue'
-import { ref } from 'vue'
-
-//TODO: допилить, понять, как обновлять базу при добавлении и удалении. Прикрутить ооткрытие формы и работу с инпутами
-
-const songs = ref([])
+import useSongs from '@/composables/useSongs'
+import { getAuth } from 'firebase/auth'
 
 const uid = getAuth().currentUser.uid
 
-const db = getFirestore()
-//Получаем референс документа с заданным именем
-const colRef = collection(db, 'songs')
-//Получаем отфильтвованную БД. query
-const q = query(colRef, where('uid', '==', uid))
+const { songs, getSongsRealTime } = useSongs()
 
-// Real-time database realisation ставим обсервер, на каждое изменение снапшота, мы перерендериваем базу и ее отображение
-onSnapshot(q, (snapshot) => {
-  songs.value = []
-  snapshot.docs.forEach((doc) => {
-    songs.value.push({ ...doc.data(), id: doc.id })
-  })
-})
+getSongsRealTime(uid)
 </script>
 
 <template>
@@ -42,9 +26,9 @@ onSnapshot(q, (snapshot) => {
           <div class="p-6">
             <!-- Track list -->
             <composition-item
-              :song="song"
               v-for="song in songs"
               :key="song.id"
+              :song="song"
               @closeForm="song.formIsActive = false"
             />
           </div>

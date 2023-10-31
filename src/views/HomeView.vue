@@ -1,76 +1,16 @@
 <script setup>
 import MusicItem from '@/components/MusicItem.vue'
-import { computed, onMounted, ref } from 'vue'
-import {
-  collection,
-  getFirestore,
-  limit,
-  query,
-  getDocs,
-  startAfter,
-  orderBy,
-  getDoc,
-  doc,
-  updateDoc,
-  increment
-} from 'firebase/firestore'
+import { onMounted, ref } from 'vue'
+import { doc, updateDoc, increment, getFirestore } from 'firebase/firestore'
+import useSongs from '@/composables/useSongs'
 
-const songs = ref([])
-const selectedSort = ref('1')
 const playlistEnd = ref('')
-const maxPerPage = ref(15)
-const pendingRequest = ref(false)
 const db = getFirestore()
-const searchQuery = ref('')
 
-const sortedSongs = computed(() => {
-  return songs.value.toSorted((a, b) => {
-    switch (selectedSort.value) {
-      default:
-        return b.likesCount - a.likesCount
-      case '2':
-        return b.commentCount - a.commentCount
-      case '3':
-        return b.modifiedName - a.modifiedName
-      case '4':
-        return b.genre - a.genre
-    }
-  })
-})
+const { songs, getSongs, selectedSort, sortOptions, searchedAndSortedSongs, searchQuery } =
+  useSongs()
 
-const getSongs = async () => {
-  if (pendingRequest.value) {
-    return
-  }
-  pendingRequest.value = true
-
-  const docRef = collection(db, 'songs')
-  let q
-
-  if (songs.value.length) {
-    const lastDocId = songs.value[songs.value.length - 1].id
-    const lastDocRef = doc(db, 'songs', lastDocId)
-    const lastDoc = await getDoc(lastDocRef)
-
-    q = query(docRef, orderBy('modifiedName'), startAfter(lastDoc), limit(maxPerPage.value))
-    // console.log(lastDoc.id)
-  } else {
-    q = query(docRef, orderBy('modifiedName'), limit(maxPerPage.value))
-  }
-
-  const docSnap = await getDocs(q)
-  docSnap.docs.forEach((doc) => {
-    songs.value.push({ ...doc.data(), id: doc.id })
-  })
-  pendingRequest.value = false
-}
 getSongs()
-
-const searchedAndSortedSongs = computed(() => {
-  return sortedSongs.value.filter((song) =>
-    song.modifiedName.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
 
 const addLikes = async (song) => {
   const itemRef = doc(db, 'songs', song.id)
@@ -102,7 +42,7 @@ onMounted(() => {
       <div
         class="absolute inset-0 w-full h-full bg-contain introduction-bg"
         style="background-image: url(src/assets/img/header.png)"
-      ></div>
+      />
       <div class="container mx-auto">
         <div class="text-white main-header-content">
           <h1 class="font-bold text-5xl mb-5">Listen to Great Music!</h1>
@@ -131,13 +71,12 @@ onMounted(() => {
             class="w-full py-1 px-2 text-black outline-none placeholder-gray-700 focus:placeholder-gray-400"
           />
           <select v-model="selectedSort" class="text-sm text-center outline-none cursor-pointer">
-            <option value="1">Сортировка по лайкам</option>
-            <option value="2">Сортировка по комментариям</option>
-            <option value="3">Сортировка по названию песни</option>
-            <option value="4">Сортировка по жанру</option>
+            <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+              {{ option.text }}
+            </option>
           </select>
         </div>
-        <!-- Playlist -->
+
         <ol id="playlist">
           <music-item
             v-for="song in searchedAndSortedSongs"
@@ -145,9 +84,8 @@ onMounted(() => {
             :song="song"
             @addLike="addLikes(song)"
           />
-          <div ref="playlistEnd"></div>
         </ol>
-        <!-- .. end Playlist -->
+        <div ref="playlistEnd" />
       </div>
     </section>
   </main>

@@ -12,30 +12,6 @@ defineProps({
   }
 })
 
-//Забираеем данные из firestore и помещаем их в массив
-// getDocs(collection(db, uid))
-//   .then((snapshot) => {
-//     snapshot.docs.forEach((doc) => {
-//       songs.value.push({ ...doc.data(), id: doc.id })
-//     })
-//     console.log(songs.value)
-//   })
-//   .catch((err) => {
-//     console.log(err.message)
-//   })
-//
-//
-//   const q = query(colRef, where('uid', '==', uid))
-//   const qSnapshot = await getDocs(q)
-//   qSnapshot.forEach((doc) => {
-//     const song1 = {
-//       ...doc.data(),
-//       docId: doc.id
-//     }
-//     songs.value.push(song1)
-//   })
-// })
-
 const db = getFirestore()
 const deleteSong = (song) => {
   deleteDoc(doc(db, 'songs', song.id))
